@@ -24,7 +24,6 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-// ===================== Book Model =====================
 type Book struct {
 	ID        int       `json:"id"`
 	Title     string    `json:"title"`
@@ -36,7 +35,6 @@ type Book struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// ===================== Auth Models =====================
 type User struct {
 	ID           int       `json:"id"`
 	Username     string    `json:"username"`
@@ -68,7 +66,6 @@ type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token" binding:"required"`
 }
 
-// ===================== JWT Claims =====================
 type CustomClaims struct {
 	UserID   int      `json:"user_id"`
 	Username string   `json:"username"`
@@ -87,7 +84,6 @@ func getEnv(key, defaultValue string) string {
 var db *sql.DB
 var jwtSecret = []byte("my-super-secret-key-change-in-production-2024")
 
-// ===================== Password Hashing Functions =====================
 func hashPassword(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
@@ -100,7 +96,6 @@ func verifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-// ===================== JWT Functions =====================
 func generateAccessToken(userID int, username string, roles []string) (string, error) {
 	expirationTime := time.Now().Add(15 * time.Minute)
 
@@ -156,7 +151,6 @@ func verifyToken(tokenString string) (*CustomClaims, error) {
 	return nil, fmt.Errorf("invalid token")
 }
 
-// ===================== Database Helper Functions =====================
 func getUserRoles(userID int) ([]string, error) {
 	query := `
 		SELECT r.name
@@ -296,7 +290,6 @@ func initDB() {
 	log.Println("successfully connected to database")
 }
 
-// ===================== Authentication Endpoints =====================
 func login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -450,7 +443,6 @@ func logout(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "logged out successfully"})
 }
 
-// ===================== Middleware =====================
 func authMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// ดึง token จาก Authorization header
@@ -512,7 +504,6 @@ func requirePermission(permission string) gin.HandlerFunc {
 	}
 }
 
-// ===================== Book Handlers =====================
 // @Summary Get all books
 // @Description Get details of books
 // @Tags Books
@@ -684,7 +675,6 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	// ===================== Public Endpoints =====================
 	// Swagger documentation
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -698,7 +688,6 @@ func main() {
 		c.JSON(http.StatusOK, gin.H{"message" : "healthy"})
 	})
 
-	// ===================== Authentication Endpoints =====================
 	auth := r.Group("/auth")
 	{
 		auth.POST("/login", login)           // Login และรับ tokens
@@ -706,7 +695,6 @@ func main() {
 		auth.POST("/logout", logout)         // Logout และ revoke token
 	}
 
-	// ===================== Protected API Endpoints =====================
 	api := r.Group("/api/v1")
 	api.Use(authMiddleware()) // ทุก endpoint ต้อง authenticate
 	{
